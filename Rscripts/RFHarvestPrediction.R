@@ -1,5 +1,9 @@
 source("RFHarvestPredictionFunctions.R")
 
+if (!dir.exists("../Rout/")) {
+  dir.create("../Rout/", recursive = TRUE)
+}
+
 #loading data
 load("../Rout/Rdata/standardized_normalized_widened.Rdata")
 load("../Rout/Rdata/StandardizedByDATWidened.Rdata")

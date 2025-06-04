@@ -1,5 +1,8 @@
 source("preprocessingFunctions.R")
 
+if (!dir.exists("../Rout/")) {
+  dir.create("../Rout/", recursive = TRUE)
+}
 
 ################################################################
 #------------------------- LOAD DATA --------------------------#

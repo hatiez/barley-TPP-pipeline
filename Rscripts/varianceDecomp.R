@@ -5,6 +5,9 @@ load("../Rout/Rdata/reimputed_outliers.Rdata")
 # make list of data frames
 DFs = names(sapply(ls(), function(x) is.data.frame(get(x)))[sapply(ls(), function(x) is.data.frame(get(x))) == TRUE])
 
+if (!dir.exists("../Rout/")) {
+  dir.create("../Rout/", recursive = TRUE)
+}
 
 if (!dir.exists("../Rout/VarianceComponents")) {
   dir.create("../Rout/VarianceComponents", recursive = TRUE)

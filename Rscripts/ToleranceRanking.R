@@ -1,4 +1,9 @@
 source("ToleranceRankingFunctions.R")
+
+if (!dir.exists("../Rout/")) {
+  dir.create("../Rout/", recursive = TRUE)
+}
+
 load("../Rout/Rdata/StandardizedByDATWidened.Rdata")
 
 harvest = as.data.frame(harvest)

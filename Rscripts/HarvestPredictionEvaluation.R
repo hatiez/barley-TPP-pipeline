@@ -1,6 +1,10 @@
 # Load functions
 source("HarvestPredictionEvaluationFunctions.R")
 
+if (!dir.exists("../Rout/")) {
+  dir.create("../Rout/", recursive = TRUE)
+}
+
 # Load RF and LASSO accuracy data frames
 load("../Rout/RFHarvestPrediction/combinedRFAccuracies.Rdata")
 RFAccs = combinedRFAccuracies

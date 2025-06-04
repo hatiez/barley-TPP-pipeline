@@ -1,5 +1,8 @@
 source("LassoHarvestPredictionFunctions.R")
 
+if (!dir.exists("../Rout/")) {
+  dir.create("../Rout/", recursive = TRUE)
+}
 # For outputs:
 if (!dir.exists("../Rout/LASSOHarvestPrediction")) {
   dir.create("../Rout/LASSOHarvestPrediction", recursive = TRUE)

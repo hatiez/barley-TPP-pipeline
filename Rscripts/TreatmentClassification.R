@@ -1,5 +1,9 @@
 source("TreatmentClassificationFunctions.R")
 
+if (!dir.exists("../Rout/")) {
+  dir.create("../Rout/", recursive = TRUE)
+}
+
 load("../Rout/Rdata/StandardizedByDATWidened.Rdata")
 
 # Note on data shape: The data used in this script is "widened", i.e. each
