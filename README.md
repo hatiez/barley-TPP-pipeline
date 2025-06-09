@@ -1,4 +1,3 @@
-
 # Prediction of Harvest-Related Traits in Barley Using High-Throughput Phenotyping and Machine Learning
 
 This repository accompanies the project **"Prediction of harvest-related traits in barley using high-throughput phenotyping data and machine learning."**
@@ -55,13 +54,17 @@ This repository accompanies the project **"Prediction of harvest-related traits 
 
 3. **Follow analysis stages**  
    - Run tolerance ranking, variance decomposition, or classification independently.
-   - For TPP model evaluation, make sure to first generate the prediction models using the RF and LASSO scripts or download the models we trained for the project and place them in Rout/mlModels/ (coming later)
+   - For TPP model evaluation, make sure to first generate the prediction models using the RF and LASSO scripts or download the models we trained for the project and place them in `Rout/mlModels/`.
 
 ---
 
 ## Model Availability
 
-Due to size constraints, trained machine learning models for TPP and TPC will be hosted externally. A download link will be provided here once uploaded. These models can be used directly for replication or evaluation.
+Due to size constraints, trained machine learning models for TPP and TPC are hosted externally and can be downloaded here:
+
+📁 **[Download Pretrained Models (Google Drive)](https://drive.google.com/drive/folders/1n1tJrRs1ut-vltn8wqGUT2DSloA8HgIp?usp=sharing)**
+
+Place the downloaded model files in the directory `Rout/mlModels/` for compatibility with the evaluation scripts.
 
 ---
 
@@ -70,5 +73,3 @@ Due to size constraints, trained machine learning models for TPP and TPC will be
 - All files use consistent naming and directory structure — do not change these unless you modify the scripts accordingly.
 
 ---
-
-If you have any questions or run into issues, feel free to open an issue on this repository.
