@@ -658,6 +658,8 @@ if(transformMethod == "minmax"){
   save(list = DFs, file = "../Rout/Rdata/normalized_minmaxTransformed_reducedVar.Rdata")
 }
 
+
+
 ###################################################################
 #------------------- WIDENING AND MERGING ------------------------#
 ###################################################################
@@ -750,6 +752,109 @@ if(transformMethod == "zscore"){
 }
 if(transformMethod == "minmax"){
   save(list = c("AllControlVars","AllDroughtVars","harvest","harvest_xray"), file = "../Rout/Rdata/minmaxTransformed_normalized_widened.Rdata")
+}
+
+###################################################################
+#-------------------- AGGREGATING BY WEEK ------------------------#
+###################################################################
+
+# Machine learning approaches were repeated with data where each week had been
+# aggregated into min, mean and max values for each plant. Let's aggregate and 
+# repeat the widening and merging
+
+# We'll split the data into two lists
+controlDFs = list()
+droughtDFs = list()
+
+for (df_name in PredictorDFs){
+  df = get(df_name) 
+  # some data frames still seem to contain the removed sample "L6_C_17"
+  df = df[df$Plant.ID != "L6_C_17",]
+  df = weekly_aggregate(df)
+  controlDFs[[df_name]] = df[df$Treatment == "Control",]
+  droughtDFs[[df_name]] = df[df$Treatment == "Drought",]
+}
+
+
+# the function widen and merge applies the reshaping operation to all data frames in the list and then fuses them into one
+AllControlVarsAggregated = widen_and_merge_weekly(controlDFs)
+AllDroughtVarsAggregated = widen_and_merge_weekly(droughtDFs)
+
+# We'll remove the plant.ID column and use these as row names instead, just leaving the predictor variables 
+rownames(AllControlVarsAggregated) = AllControlVarsAggregated$Plant.ID
+AllControlVarsAggregated$Plant.ID = NULL
+
+rownames(AllDroughtVarsAggregated) = AllDroughtVarsAggregated$Plant.ID
+AllDroughtVarsAggregated$Plant.ID = NULL
+
+# Also remove plant ID and treatment
+AllControlVarsAggregated$Plant.Name = NULL
+AllControlVarsAggregated$Treatment = NULL
+AllDroughtVarsAggregated$Plant.Name = NULL
+AllDroughtVarsAggregated$Treatment = NULL
+
+# This operation introduced some NAs, due to missing values present as missing rows 
+# This is likely due accidentally skipping plants
+# CONTROL: Find indices of NA values
+nans = which(is.na(AllControlVarsAggregated), arr.ind = TRUE)
+
+# Combine the results into a data frame
+na_table = data.frame(Row = rownames(AllControlVarsAggregated)[nans[, 1]], Column = colnames(AllControlVarsAggregated)[nans[, 2]])
+
+# Ensure the 'skipped_measurements' directory exists
+if (!dir.exists("../Rout/tables/skipped_measurements")) {
+  dir.create("../Rout/tables/skipped_measurements", recursive = TRUE)
+}
+
+# Store the table
+write.csv(na_table, "../Rout/tables/skipped_measurements/skippedMeasurementsControlAggregated.csv")
+
+# View the result
+print(na_table)
+
+# REPEAT WITH DROUGH: Find indices of NA values
+nans = which(is.na(AllDroughtVarsAggregated), arr.ind = TRUE)
+
+# Combine the results into a data frame
+na_table = data.frame(Row = rownames(AllDroughtVarsAggregated)[nans[, 1]], Column = colnames(AllDroughtVarsAggregated)[nans[, 2]])
+
+# Store the table
+write.csv(na_table, "../Rout/tables/skipped_measurements/skippedMeasurementsDroughtAggregated.csv")
+
+# View the result
+print(na_table)
+
+# Re-impute
+nTree = 20
+# I'll add back a genotype column for grouping first
+AllControlVarsAggregated$Genotype = as.factor(sub("_C_[0-9]+", "", rownames(AllControlVarsAggregated)))
+AllDroughtVarsAggregated$Genotype = as.factor(sub("_D_[0-9]+", "", rownames(AllDroughtVarsAggregated)))
+
+# Do imputation for control data
+impute = groupWiseMissForest(AllControlVarsAggregated,groupVars = c("Genotype"), ignoreVars = c(), ntree = nTree)
+AllControlVarsAggregated = impute$ImputedData
+print("Control imputation OOB error:")
+print(impute$OOBError)
+
+impute = groupWiseMissForest(AllDroughtVarsAggregated,groupVars = c("Genotype"), ignoreVars = c(), ntree = nTree)
+AllDroughtVarsAggregated = impute$ImputedData
+print("Drought imputation OOB error:")
+print(impute$OOBError)
+
+#remove genotype column
+AllControlVarsAggregated$Genotype = NULL
+AllDroughtVarsAggregated$Genotype = NULL
+
+# convert to data.frame (was tibble before due to some functions from tidyr)
+AllControlVarsAggregated = as.data.frame(AllControlVarsAggregated)
+AllDroughtVarsAggregated = as.data.frame(AllDroughtVarsAggregated)
+harvest = as.data.frame(harvest)
+
+if(transformMethod == "zscore"){
+  save(list = c("AllControlVarsAggregated","AllDroughtVarsAggregated","harvest","harvest_xray"), file = "../Rout/Rdata/standardized_normalized_widened_aggregated.Rdata")
+}
+if(transformMethod == "minmax"){
+  save(list = c("AllControlVarsAggregated","AllDroughtVarsAggregated","harvest","harvest_xray"), file = "../Rout/Rdata/minmaxTransformed_normalized_widened_aggregated.Rdata")
 }
 
 
@@ -986,5 +1091,53 @@ if(transformMethod == "zscore"){
 }
 if(transformMethod == "minmax"){
   save(list = c("AllPredictorVars","harvest","harvest_xray"), file = "../Rout/Rdata/minMaxTransformedByDATWidened.Rdata")
+}
+
+
+###################################################################
+#--------------- POOLED AGGREGATION BY WEEK ----------------------#
+###################################################################
+PredictorDFs = mget(setdiff(DFs,c("harvest","weight","harvest_xray")))
+
+for (name in names(PredictorDFs)) {
+  df <- PredictorDFs[[name]]
+  # Remove unwanted sample
+  df <- df[df$Plant.ID != "L6_C_17", ]
+  # Apply weekly aggregation
+  df <- weekly_aggregate(df)
+  # Assign back to list
+  PredictorDFs[[name]] <- df
+}
+
+
+AllPredictorVarsAggregated = widen_and_merge_weekly(PredictorDFs)
+
+# We'll remove the plant.ID column and use these as row names instead, just leaving the predictor variables 
+rownames(AllPredictorVarsAggregated) = AllPredictorVarsAggregated$Plant.ID
+AllPredictorVarsAggregated$Plant.ID = NULL
+AllPredictorVarsAggregated$Plant.Name = NULL
+
+
+nTree = 20
+# I'll add back a genotype and treatment column for grouping first
+AllPredictorVarsAggregated$Genotype = as.factor(sub("_(C|D)_[0-9]+", "", rownames(AllPredictorVarsAggregated)))
+
+
+# Impute missing values
+impute = groupWiseMissForest(AllPredictorVarsAggregated,groupVars = c("Genotype","Treatment"), ignoreVars = c(), ntree = nTree)
+AllPredictorVarsAggregated = impute$ImputedData
+
+print(impute$OOBError)
+
+#remove genotype column
+AllPredictorVarsAggregated$Genotype = NULL
+
+
+## ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+if(transformMethod == "zscore"){
+  save(list = c("AllPredictorVarsAggregated","harvest","harvest_xray"), file = "../Rout/Rdata/StandardizedByDATWidenedAggregated.Rdata")
+}
+if(transformMethod == "minmax"){
+  save(list = c("AllPredictorVarsAggregated","harvest","harvest_xray"), file = "../Rout/Rdata/minMaxTransformedByDATWidenedAggregated.Rdata")
 }
 

@@ -55,7 +55,7 @@ This repository accompanies the project **"Prediction of harvest-related traits 
 
 3. **Follow analysis stages**  
    - Run tolerance ranking, variance decomposition, or classification independently.
-   - For TPP model evaluation, make sure to first generate the prediction models using the RF and LASSO scripts.
+   - For TPP model evaluation, make sure to first generate the prediction models using the RF and LASSO scripts or download the models we trained for the project and place them in Rout/mlModels/ (coming later)
 
 ---
 

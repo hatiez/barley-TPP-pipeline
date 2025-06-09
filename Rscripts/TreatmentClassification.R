@@ -6,7 +6,14 @@ if (!dir.exists("../Rout/")) {
 
 load("../Rout/Rdata/StandardizedByDATWidened.Rdata")
 
-# Note on data shape: The data used in this script is "widened", i.e. each
+# To use data aggregated by week uncomment lines below
+# load("../Rout/Rdata/StandardizedByDATWidenedAggregated.Rdata")
+
+# Rename data frame to work with script
+# AllPredictorVars = AllPredictorVarsAggregated
+
+
+# Note on data shapAllPredictorVarsAggregated# Note on data shape: The data used in this script is "widened", i.e. each
 # sample has a row and each trait at each time point has a column. This is the
 # typical format for caret-trained models.
 
@@ -48,7 +55,7 @@ if (!dir.exists("../Rout/treatmentClassification")) {
   dir.create("../Rout/treatmentClassification", recursive = TRUE)
 }
 pdf("../Rout/treatmentClassification/treatmentClassificationVarImp.pdf", width = 10, height = 7, onefile = T)
-fullClusters = plot_rf_importance(rf_model, main_title = "")
+plot_rf_importance(rf_model, main_title = "")
 dev.off()
 
 ################################################################

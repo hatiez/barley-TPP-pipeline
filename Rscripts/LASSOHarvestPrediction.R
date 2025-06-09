@@ -19,6 +19,16 @@ load("../Rout/Rdata/standardized_normalized_widened.Rdata")
 load("../Rout/Rdata/StandardizedByDATWidened.Rdata")
 AllPredictorVars$Treatment = NULL
 
+# To use data aggregated by week uncomment lines below
+# We also rename data frame to work with script
+# load("../Rout/Rdata/StandardizedByDATWidenedAggregated.Rdata")
+# load("../Rout/Rdata/standardized_normalized_widened_aggregated.Rdata")
+# 
+# AllPredictorVars = AllPredictorVarsAggregated
+# AllPredictorVars$Treatment = NULL
+# AllControlVars = AllControlVarsAggregated
+# AllDroughtVars = AllDroughtVarsAggregated
+
 
 ### SCRIPT SETTINGS ###
 ## -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

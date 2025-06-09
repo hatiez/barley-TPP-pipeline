@@ -120,6 +120,8 @@ groupWiseMissForest = function(df, groupVars = c("DAT", "Treatment", "Plant.Name
   return(list(ImputedData = result_df, OOBError = oob_error_df))
 }
 
+
+
 #' Z-Score Normalization
 #'
 #' Apply z-score normalization across the entire column or within groups using dplyr.
@@ -149,6 +151,9 @@ zScore = function(df, groupVars = c("DAT", "Treatment"), ignoreVars = c("Plant.N
   
   return(df)
 }
+
+
+
 
 #' Min-Max Normalization
 #'
@@ -774,6 +779,133 @@ widen_and_merge = function(DFlist,mergeby = c("Plant.ID"),removeVars = c("DAT","
   }
   return(as.data.frame(output))
 }
+
+#' Aggregate Weekly Trait Data by Plant
+#'
+#' This function aggregates temporal trait data into weekly summaries for each plant.
+#' For each plant and each week (as defined by `weekDATs`), it calculates min, mean, and max
+#' values for each trait. If the aggregated values are globally constant (i.e., min = mean = max
+#' for all traits across the entire dataset), only the mean values are retained.
+#'
+#' @param df A data frame containing temporal phenotypic data.
+#' @param timeVar The name of the column representing time (default: "DAT").
+#' @param idVar The name of the column identifying unique plants (default: "Plant.ID").
+#' @param weekDATs A list of numeric vectors, each representing DAT values for one experimental week.
+#' @param ignoreVars A character vector of column names to exclude from aggregation (e.g., metadata).
+#'
+#' @return A data frame containing aggregated weekly trait data with a column `valType`
+#'         ("min", "mean", "max") and time column renamed to `timeVar`.
+#'         If all trait values are constant across valTypes, only "mean" rows are kept.
+#'
+#' @examples
+#' weekly_aggregate(my_data)
+weekly_aggregate <- function(df,
+                             timeVar    = "DAT",
+                             idVar      = "Plant.ID",
+                             weekDATs   = list(24:29, 30:36, 37:43, 44:49, 
+                                               50:57, 58:64, 65:71, 72:78,
+                                               79:85, 86:92, 93:98),
+                             ignoreVars = c("Plant.Name", "Treatment")) {
+  # 1) Tag each row with its corresponding week number
+  #    This maps each DAT to the index of the list it belongs to in weekDATs
+  df2 <- df %>%
+    mutate(Week = purrr::map_int(.data[[timeVar]],
+                                 ~ which(sapply(weekDATs, function(w) .x %in% w))[1]
+    )) %>%
+    filter(!is.na(Week))  # Drop rows that don't match any week
+  
+  # 2) Identify which columns are trait measurements (everything except meta-columns)
+  traitCols <- setdiff(names(df2), c(timeVar, idVar, ignoreVars, "Week"))
+  
+  # 3) For each valType ("min", "mean", "max"), compute aggregated values by plant and week
+  summaries <- lapply(c("min","mean","max"), function(valType) {
+    fn <- match.fun(valType)
+    df2 %>%
+      group_by(across(all_of(c(idVar, ignoreVars, "Week")))) %>%
+      summarise(across(all_of(traitCols), ~ fn(.x, na.rm = TRUE)),
+                .groups = "drop") %>%
+      mutate(valType = valType)
+  })
+  
+  # Combine all summaries into one long-format data frame
+  combined <- bind_rows(summaries)
+  
+  # 4) Pivot to wide format so that min, mean, max for each trait are in separate columns
+  wide <- combined %>%
+    pivot_wider(
+      id_cols    = all_of(c(idVar, ignoreVars, "Week")),
+      names_from = valType,
+      values_from= all_of(traitCols),
+      names_glue = "{.value}_{valType}"
+    )
+  
+  # 5) Check globally (across the entire dataset) whether min == mean == max for all traits
+  all_equal_global <- all(
+    unlist(lapply(traitCols, function(tr) {
+      min_col  <- paste0(tr, "_min")
+      mean_col <- paste0(tr, "_mean")
+      max_col  <- paste0(tr, "_max")
+      all(wide[[min_col]] == wide[[mean_col]], na.rm = TRUE) &&
+        all(wide[[max_col]] == wide[[mean_col]], na.rm = TRUE)
+    }))
+  )
+  
+  # 6) If all traits are constant across valTypes, keep only "mean" rows; else keep all
+  cleaned <- if (all_equal_global) {
+    combined %>% filter(valType == "mean")
+  } else {
+    combined
+  }
+  
+  # 7) Rename "Week" column back to the original timeVar name (usually "DAT")
+  cleaned %>%
+    rename(!!timeVar := Week)
+}
+
+
+#' Widen and Merge a List of Weekly-Aggregated Data Frames
+#'
+#' Each df in DFlist must have:
+#'  - an ID column (e.g. "Plant.ID")
+#'  - any ignoreVars (e.g. "Plant.Name","Treatment") you want to carry over
+#'  - a "DAT" column containing the week number (1,2,3…)
+#'  - a "valType" column ("min","mean","max")
+#'  - one column per trait
+#'
+#' @param DFlist     List of those data frames
+#' @param mergeby    Character vector of columns to merge by (e.g. "Plant.ID")
+#' @param ignoreVars Character vector of other columns to carry along (e.g. "Plant.Name","Treatment")
+#' @return           A single data.frame with one row per ID, and columns named
+#'                   trait_valType_W{DAT} for every combination found.
+#' @examples
+#' # Suppose agg1, agg2 are two weekly-aggregated tibbles:
+#' widen_and_merge(list(agg1, agg2), mergeby="Plant.ID", ignoreVars=c("Plant.Name","Treatment"))
+widen_and_merge_weekly <- function(DFlist,
+                            mergeby    = "Plant.ID",
+                            ignoreVars = c("Plant.Name","Treatment")) {
+  # A helper that widens one df
+  widen_one <- function(df) {
+    # identify trait columns
+    traitCols <- setdiff(names(df), c(mergeby, ignoreVars, "DAT", "valType"))
+    
+    df %>%
+      pivot_wider(
+        id_cols      = c(all_of(mergeby), all_of(ignoreVars)),
+        names_from   = c("valType","DAT"),
+        values_from  = traitCols,
+        names_glue   = "{.value}_{valType}_{DAT}W"
+      )
+  }
+  
+  # 1) Widen each
+  wide_list <- map(DFlist, widen_one)
+  
+  # 2) Merge all together by 'mergeby' + ignoreVars
+  output <- reduce(wide_list, full_join, by = c(mergeby, ignoreVars))
+  
+  as.data.frame(output)
+}
+
 
 compute_stats = function(df, group_vars, trait_prefix = "", treatment_label = NULL, include_dat = TRUE) {
   # If we're NOT grouping by Treatment, drop it from the data before computing anything

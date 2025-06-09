@@ -9,9 +9,15 @@ load("../Rout/Rdata/standardized_normalized_widened.Rdata")
 load("../Rout/Rdata/StandardizedByDATWidened.Rdata")
 AllPredictorVars$Treatment = NULL
 
-# Note on data shape: The data used in this script is "widened", i.e. each
-# sample has a row and each trait at each time point has a column. This is the
-# typical format for caret-trained models.
+# To use data aggregated by week uncomment lines below
+# We also rename data frame to work with script
+# load("../Rout/Rdata/StandardizedByDATWidenedAggregated.Rdata")
+# load("../Rout/Rdata/standardized_normalized_widened_aggregated.Rdata")
+# 
+# AllPredictorVars = AllPredictorVarsAggregated
+# AllPredictorVars$Treatment = NULL
+# AllControlVars = AllControlVarsAggregated
+# AllDroughtVars = AllDroughtVarsAggregated
 
 # For outputs:
 if (!dir.exists("../Rout/RFHarvestPrediction")) {
