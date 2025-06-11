@@ -23,6 +23,10 @@ AllPredictorVars$Treatment = NULL
 if (!dir.exists("../Rout/RFHarvestPrediction")) {
   dir.create("../Rout/RFHarvestPrediction", recursive = TRUE)
 }
+# For outputs:
+if (!dir.exists("../Rout/mlModels/")) {
+  dir.create("../Rout/mlModels/", recursive = TRUE)
+}
 
 ################################
 #######  SCRIPT SETTINGS ####### 

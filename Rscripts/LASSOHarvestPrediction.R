@@ -7,6 +7,10 @@ if (!dir.exists("../Rout/")) {
 if (!dir.exists("../Rout/LASSOHarvestPrediction")) {
   dir.create("../Rout/LASSOHarvestPrediction", recursive = TRUE)
 }
+# For outputs:
+if (!dir.exists("../Rout/mlModels/")) {
+  dir.create("../Rout/mlModels/", recursive = TRUE)
+}
 
 # Note on data shape: The data used in this script is "widened", i.e. each
 # sample has a row and each trait at each time point has a column. This is the

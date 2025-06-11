@@ -350,8 +350,3 @@ tibble(variable = var, control = control_cv, drought = drought_cv, pooled = pool
 
 # improve row name
 cv_table$variable = sapply(cv_table$variable, clean_label_TemporalTraits)
-
-# export for latex
-library(xtable)
-
-print(xtable(cv_table, digits = c(0, 0, 3, 3, 3)), include.rownames = F)

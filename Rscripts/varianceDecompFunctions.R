@@ -1,5 +1,5 @@
 # Define required packages
-.required_pkgs = c("reshape2", "lme4", "ggplot2", "lmerTest", "patchwork", "purrr", "tibble")
+.required_pkgs = c("reshape2", "lme4", "ggplot2", "lmerTest", "patchwork", "purrr", "tibble","dplyr")
 
 # Identify missing ones
 .missing_pkgs = .required_pkgs[!(.required_pkgs %in% installed.packages()[, "Package"])]

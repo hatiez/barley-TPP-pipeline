@@ -4,6 +4,8 @@ This repository accompanies the project **"Prediction of harvest-related traits 
 
 **[Publication (Coming Soon)](TODO)** — Please refer to the publication for background, methodology, and results.
 
+**Contributors:** Hans Tietze, Lamis Abdelhakim and Barbora Pleskačová.
+
 ---
 
 ## Repository Structure
@@ -12,7 +14,7 @@ This repository accompanies the project **"Prediction of harvest-related traits 
   Contains all raw and processed phenotyping and harvest data files required to run the analysis.
 
 - **`Rscripts/`**  
-  Includes all analysis scripts and their corresponding function files. These are organized by stage in the pipeline:
+  Includes all analysis scripts and their corresponding function files (if present). Functions are loaded in the main script and do not need to be opened. Files are organized by stage in the pipeline:
 
   - **Preprocessing**  
     - `preProcessing.R`
@@ -20,6 +22,9 @@ This repository accompanies the project **"Prediction of harvest-related traits 
   - **Tolerance Ranking**  
     - `ToleranceRanking.R`  
     - `ToleranceRankingFunctions.R`
+
+  - **Clustering of Samples**  
+    - `clusteringSamples.R`
 
   - **Variance Decomposition**  
     - `varianceDecomp.R`  
@@ -62,7 +67,7 @@ This repository accompanies the project **"Prediction of harvest-related traits 
 
 Due to size constraints, trained machine learning models for TPP and TPC are hosted externally and can be downloaded here:
 
-📁 **[Download Pretrained Models (Google Drive)](https://drive.google.com/drive/folders/1n1tJrRs1ut-vltn8wqGUT2DSloA8HgIp?usp=sharing)**
+**[Download Pretrained Models (Google Drive)](https://drive.google.com/drive/folders/1n1tJrRs1ut-vltn8wqGUT2DSloA8HgIp?usp=sharing)**
 
 Place the downloaded model files in the directory `Rout/mlModels/` for compatibility with the evaluation scripts.
 

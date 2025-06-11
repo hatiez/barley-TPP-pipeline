@@ -1,7 +1,7 @@
 # List of required packages
 required_packages = c(
   "ggplot2", "dplyr", "tidyr", "gridExtra", "grid", "cowplot", "lme4",
-  "reshape2", "stringr", "missForest", "MASS", "car", "readr", "openxlsx"
+  "reshape2", "stringr", "missForest", "MASS", "car", "readr", "openxlsx","purrr"
 )
 
 # Identify missing packages
@@ -898,7 +898,7 @@ widen_and_merge_weekly <- function(DFlist,
   }
   
   # 1) Widen each
-  wide_list <- map(DFlist, widen_one)
+  wide_list <- purrr::map(DFlist, widen_one)
   
   # 2) Merge all together by 'mergeby' + ignoreVars
   output <- reduce(wide_list, full_join, by = c(mergeby, ignoreVars))
