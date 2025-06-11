@@ -2,7 +2,7 @@
 
 This repository accompanies the project **"Prediction of harvest-related traits in barley using high-throughput phenotyping data and machine learning."**
 
-**[Publication (Coming Soon)](TODO)** — Please refer to the publication for background, methodology, and results.
+**[Publication](TODO)** — Please refer to the publication for background, methodology, and results.
 
 **Contributors:** Hans Tietze, Lamis Abdelhakim and Barbora Pleskačová.
 
